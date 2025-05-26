@@ -1,0 +1,20 @@
+[build]
+  command = "chmod +x ./netlify.sh && ./netlify.sh"
+  publish = ".next"
+
+[build.environment]
+  YOUTUBE_API_KEY = "AIzaSyDUphdARuGjMdzBDQpiXnB5lkrNg4r_Bu0"
+  NODE_VERSION = "18"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[dev]
+  command = "npm run dev"
+  port = 3000
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/nextjs"
+  status = 200

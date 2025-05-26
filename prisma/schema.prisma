@@ -1,0 +1,164 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/youtube_companion_app/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(cuid())
+  username        String   @unique
+  email           String   @unique
+  passwordHash    String
+  createdAt       DateTime @default(now())
+  lastLogin       DateTime?
+  profilePicture  String?
+  isActive        Boolean  @default(true)
+
+  // Relations
+  preferences     UserPreference[]
+  agents          Agent[]
+  videoInteractions VideoInteraction[]
+  connections1    SocialConnection[] @relation("User1Connections")
+  connections2    SocialConnection[] @relation("User2Connections")
+  inventory       UserInventory[]
+
+  @@map("users")
+}
+
+model UserPreference {
+  id             String   @id @default(cuid())
+  userId         String
+  preferenceKey  String
+  preferenceValue String?
+  lastUpdated    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, preferenceKey])
+  @@map("user_preferences")
+}
+
+model Agent {
+  id            String   @id @default(cuid())
+  userId        String
+  agentType     String
+  agentName     String
+  configuration Json?
+  createdAt     DateTime @default(now())
+  lastActive    DateTime?
+  visualAssets  Json?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memories AgentMemory[]
+  fromInteractions AgentInteraction[] @relation("FromAgent")
+  toInteractions AgentInteraction[] @relation("ToAgent")
+  discoveries SharedDiscovery[]
+
+  @@map("agents")
+}
+
+model AgentMemory {
+  id         String   @id @default(cuid())
+  agentId    String
+  memoryType String
+  content    String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  importance Float    @default(0.5)
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("agent_memories")
+}
+
+model VideoInteraction {
+  id              String   @id @default(cuid())
+  userId          String
+  videoId         String
+  interactionType String
+  timestamp       DateTime @default(now())
+  data            Json?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("video_interactions")
+}
+
+model AgentInteraction {
+  id              String   @id @default(cuid())
+  fromAgentId     String
+  toAgentId       String
+  interactionType String
+  content         String?
+  metadata        Json?
+  timestamp       DateTime @default(now())
+
+  fromAgent Agent @relation("FromAgent", fields: [fromAgentId], references: [id], onDelete: Cascade)
+  toAgent   Agent @relation("ToAgent", fields: [toAgentId], references: [id], onDelete: Cascade)
+
+  @@map("agent_interactions")
+}
+
+model SocialConnection {
+  id              String   @id @default(cuid())
+  userId1         String
+  userId2         String
+  connectionType  String
+  status          String
+  createdAt       DateTime @default(now())
+  lastInteraction DateTime?
+
+  user1 User @relation("User1Connections", fields: [userId1], references: [id], onDelete: Cascade)
+  user2 User @relation("User2Connections", fields: [userId2], references: [id], onDelete: Cascade)
+
+  @@unique([userId1, userId2, connectionType])
+  @@map("social_connections")
+}
+
+model SharedDiscovery {
+  id           String   @id @default(cuid())
+  agentId      String
+  discoveryType String
+  content      String
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  isPublic     Boolean  @default(false)
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("shared_discoveries")
+}
+
+model ShopItem {
+  id          String  @id @default(cuid())
+  itemType    String
+  name        String
+  description String?
+  price       Decimal @db.Decimal(10, 2)
+  assetUrl    String?
+  metadata    Json?
+  isActive    Boolean @default(true)
+
+  inventory UserInventory[]
+
+  @@map("shop_items")
+}
+
+model UserInventory {
+  id         String   @id @default(cuid())
+  userId     String
+  itemId     String
+  acquiredAt DateTime @default(now())
+  isEquipped Boolean  @default(false)
+
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item ShopItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId])
+  @@map("user_inventory")
+}
