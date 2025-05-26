@@ -43,13 +43,14 @@ function formatDuration(isoDuration: string): string {
 export class YouTubeAPI {
   private apiKey: string;
   private baseUrl = 'https://www.googleapis.com/youtube/v3';
-  
-  // Default API key - in a production app, this should be stored in environment variables
-  private defaultApiKey = 'AIzaSyDUphdARuGjMdzBDQpiXnB5lkrNg4r_Bu0';
 
   constructor(apiKey?: string) {
-    // Use provided key, environment variable, or default key
-    this.apiKey = apiKey || process.env.YOUTUBE_API_KEY || this.defaultApiKey;
+    // Use provided key or environment variable
+    this.apiKey = apiKey || process.env.YOUTUBE_API_KEY || '';
+    
+    if (!this.apiKey) {
+      console.warn('YouTube API key not found. Please set YOUTUBE_API_KEY environment variable.');
+    }
   }
 
   async searchVideos(params: YouTubeSearchParams): Promise<YouTubeVideo[]> {

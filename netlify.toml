@@ -1,9 +1,8 @@
 [build]
-  command = "chmod +x ./netlify.sh && ./netlify.sh"
+  command = "npm install && npx prisma generate && npm run build"
   publish = ".next"
 
 [build.environment]
-  YOUTUBE_API_KEY = "AIzaSyDUphdARuGjMdzBDQpiXnB5lkrNg4r_Bu0"
   NODE_VERSION = "18"
   NEXT_TELEMETRY_DISABLED = "1"
 
@@ -14,7 +13,11 @@
   command = "npm run dev"
   port = 3000
 
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
 [[redirects]]
-  from = "/*"
-  to = "/.netlify/functions/nextjs"
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
   status = 200

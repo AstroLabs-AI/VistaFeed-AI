@@ -9,7 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@prisma/client": "^6.8.2",
     "jose": "5.2.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "prisma": "^6.8.2"
+  }
 }
