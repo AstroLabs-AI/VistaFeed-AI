@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
   
   // Define protected and auth routes
   const protectedRoutes = ['/dashboard', '/agents', '/social', '/videos', '/shop'];
-  const authRoutes = ['/login', '/register'];
+  const authRoutes = ['/auth', '/login', '/register'];
   
   // Check if the route is protected
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));

@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
+import bcrypt from 'bcryptjs';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key');
 const JWT_REFRESH_SECRET = new TextEncoder().encode(process.env.JWT_REFRESH_SECRET || 'your-refresh-secret');
@@ -10,17 +11,13 @@ export interface TokenPayload extends JWTPayload {
 }
 
 export async function hashPassword(password: string): Promise<string> {
-  // Use Web Crypto API instead of bcryptjs for Edge Runtime compatibility
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + 'salt'); // Simple salt for demo
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  // Use bcryptjs for secure password hashing
+  const salt = await bcrypt.genSalt(12);
+  return bcrypt.hash(password, salt);
 }
 
 export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-  const hashedInput = await hashPassword(password);
-  return hashedInput === hashedPassword;
+  return bcrypt.compare(password, hashedPassword);
 }
 
 export async function generateTokens(payload: { userId: string; username: string }) {

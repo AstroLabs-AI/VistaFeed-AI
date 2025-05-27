@@ -8,11 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
 
-interface LoginFormProps {
-  onToggleMode: () => void;
-}
-
-export function LoginForm({ onToggleMode }: LoginFormProps) {
+export function LoginForm() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -41,6 +37,8 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
       }
 
       login(data.user, data.accessToken);
+      // Redirect to dashboard after successful login
+      window.location.href = '/dashboard';
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
@@ -135,14 +133,9 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
             </Button>
 
             <div className="text-center">
-              <Button
-                type="button"
-                variant="link"
-                onClick={onToggleMode}
-                className="text-sm text-muted-foreground hover:text-primary"
-              >
-                Don't have an account? Sign up
-              </Button>
+              <p className="text-sm text-muted-foreground">
+                Don&apos;t have an account? Switch to the Register tab
+              </p>
             </div>
           </form>
         </CardContent>

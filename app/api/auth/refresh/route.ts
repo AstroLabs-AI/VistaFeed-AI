@@ -1,30 +1,37 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyRefreshToken, generateTokens } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { verifyPassword, generateTokens } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    const refreshToken = request.cookies.get('refreshToken')?.value;
 
-    // Validate input
-    if (!email || !password) {
+    if (!refreshToken) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
+        { error: 'No refresh token provided' },
+        { status: 401 }
+      );
+    }
+
+    // Verify the refresh token
+    const payload = await verifyRefreshToken(refreshToken);
+    if (!payload) {
+      return NextResponse.json(
+        { error: 'Invalid refresh token' },
+        { status: 401 }
       );
     }
 
     try {
-      // Find user
+      // Get user from database
       const user = await prisma.user.findUnique({
-        where: { email },
+        where: { id: payload.userId },
         select: {
           id: true,
           username: true,
           email: true,
-          passwordHash: true,
           profilePicture: true,
           isActive: true,
         }
@@ -32,33 +39,18 @@ export async function POST(request: NextRequest) {
 
       if (!user || !user.isActive) {
         return NextResponse.json(
-          { error: 'Invalid credentials' },
+          { error: 'User not found or inactive' },
           { status: 401 }
         );
       }
 
-      // Verify password
-      const isValidPassword = await verifyPassword(password, user.passwordHash);
-      if (!isValidPassword) {
-        return NextResponse.json(
-          { error: 'Invalid credentials' },
-          { status: 401 }
-        );
-      }
-
-      // Update last login
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { lastLogin: new Date() }
-      });
-
-      // Generate tokens
-      const { accessToken, refreshToken } = await generateTokens({
+      // Generate new tokens
+      const { accessToken, refreshToken: newRefreshToken } = await generateTokens({
         userId: user.id,
         username: user.username,
       });
 
-      // Set refresh token as httpOnly cookie
+      // Set new refresh token as httpOnly cookie
       const response = NextResponse.json({
         user: {
           id: user.id,
@@ -69,7 +61,7 @@ export async function POST(request: NextRequest) {
         accessToken,
       });
 
-      response.cookies.set('refreshToken', refreshToken, {
+      response.cookies.set('refreshToken', newRefreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -78,18 +70,18 @@ export async function POST(request: NextRequest) {
 
       return response;
     } catch (dbError) {
-      // If database is not available, allow demo login
-      console.log('Database not available, allowing demo login');
+      // If database is not available, but token is valid, return demo user
+      console.log('Database not available, returning demo user');
       
-      // For demo mode, accept any email/password
       const demoUser = {
-        id: `demo-${Date.now()}`,
-        username: email.split('@')[0],
-        email,
+        id: payload.userId,
+        username: payload.username,
+        email: `${payload.username}@demo.com`,
         profilePicture: null,
       };
       
-      const { accessToken, refreshToken } = await generateTokens({
+      // Generate new tokens
+      const { accessToken, refreshToken: newRefreshToken } = await generateTokens({
         userId: demoUser.id,
         username: demoUser.username,
       });
@@ -97,10 +89,10 @@ export async function POST(request: NextRequest) {
       const response = NextResponse.json({
         user: demoUser,
         accessToken,
-        message: 'Demo login (database not connected)'
+        message: 'Demo user (database not connected)'
       });
 
-      response.cookies.set('refreshToken', refreshToken, {
+      response.cookies.set('refreshToken', newRefreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -110,9 +102,9 @@ export async function POST(request: NextRequest) {
       return response;
     }
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Token refresh error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to refresh token' },
       { status: 500 }
     );
   }

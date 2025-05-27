@@ -8,11 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
 
-interface RegisterFormProps {
-  onToggleMode: () => void;
-}
-
-export function RegisterForm({ onToggleMode }: RegisterFormProps) {
+export function RegisterForm() {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -53,6 +49,8 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
       }
 
       login(data.user, data.accessToken);
+      // Redirect to dashboard after successful registration
+      window.location.href = '/dashboard';
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
@@ -175,14 +173,9 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
             </Button>
 
             <div className="text-center">
-              <Button
-                type="button"
-                variant="link"
-                onClick={onToggleMode}
-                className="text-sm text-muted-foreground hover:text-primary"
-              >
-                Already have an account? Sign in
-              </Button>
+              <p className="text-sm text-muted-foreground">
+                Already have an account? Switch to the Login tab
+              </p>
             </div>
           </form>
         </CardContent>
