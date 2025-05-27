@@ -73,9 +73,8 @@ export default function VideosPage() {
       setError(null);
       
       const token = await getToken();
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
+      console.log('Token:', token); // Debug log
+      // Remove token check since we're in demo mode
       
       const params = new URLSearchParams({
         q: query,
@@ -83,19 +82,33 @@ export default function VideosPage() {
         order: 'relevance'
       });
       
-      const response = await fetch(`/api/videos/search?${params.toString()}`, {
+      const url = `/api/videos/search?${params.toString()}`;
+      console.log('Fetching from:', url); // Debug log
+      
+      const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token || 'demo-token'}`
         }
       });
       
+      console.log('Response status:', response.status); // Debug log
+      
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('API Error:', errorData); // Debug log
         throw new Error(errorData.error || 'Failed to fetch videos');
       }
       
       const data = await response.json();
-      setVideos(data.videos);
+      console.log('Videos received:', data.videos?.length); // Debug log
+      
+      // Parse dates properly
+      const parsedVideos = (data.videos || []).map((video: any) => ({
+        ...video,
+        publishedAt: new Date(video.publishedAt)
+      }));
+      
+      setVideos(parsedVideos);
     } catch (err) {
       console.error('Error fetching videos:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -193,6 +206,9 @@ export default function VideosPage() {
           >
             <p className="flex items-center">
               <span className="mr-2">⚠️</span> {error}
+            </p>
+            <p className="text-sm mt-2">
+              Check the browser console for more details.
             </p>
           </motion.div>
         )}

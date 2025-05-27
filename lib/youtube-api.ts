@@ -55,9 +55,13 @@ export class YouTubeAPI {
 
   async searchVideos(params: YouTubeSearchParams): Promise<YouTubeVideo[]> {
     try {
-
+      console.log('YouTube API searchVideos called with:', params);
+      console.log('API Key available:', !!this.apiKey);
+      
       // Search for videos
       const searchUrl = `${this.baseUrl}/search?part=snippet&type=video&maxResults=${params.maxResults || 10}&q=${encodeURIComponent(params.query)}&key=${this.apiKey}`;
+      console.log('Fetching from YouTube:', searchUrl.replace(this.apiKey, 'HIDDEN'));
+      
       const searchResponse = await fetch(searchUrl);
       
       if (!searchResponse.ok) {

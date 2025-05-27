@@ -6,8 +6,11 @@ import { youtubeAPI, YouTubeSearchParams } from '@/lib/youtube-api';
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('Video search API called');
+    
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.replace('Bearer ', '');
+    console.log('Auth token:', token);
     
     // For demo mode, accept demo-token
     if (token && token !== 'demo-token') {
@@ -23,10 +26,13 @@ export async function GET(request: NextRequest) {
     const order = searchParams.get('order') as YouTubeSearchParams['order'] || 'relevance';
     const duration = searchParams.get('duration') as YouTubeSearchParams['duration'];
     
+    console.log('Search params:', { query, maxResults, order, duration });
+    
     if (!query) {
       return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 });
     }
     
+    console.log('Calling YouTube API...');
     // Use the real YouTube API to search for videos
     const videos = await youtubeAPI.searchVideos({
       query,
@@ -34,6 +40,8 @@ export async function GET(request: NextRequest) {
       order,
       duration
     });
+    
+    console.log('Videos found:', videos.length);
     
     return NextResponse.json({ videos });
   } catch (error) {
