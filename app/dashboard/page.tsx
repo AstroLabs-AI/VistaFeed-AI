@@ -14,18 +14,16 @@ export default function DashboardPage() {
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
 
-  useEffect(() => {
-    const validateAuth = async () => {
-      setIsChecking(true);
-      const isValid = await checkAuth();
-      if (!isValid) {
-        router.push('/');
-      }
-      setIsChecking(false);
-    };
+  // Mock user for demo purposes
+  const mockUser = {
+    username: 'Demo User',
+    email: 'demo@example.com'
+  };
 
-    validateAuth();
-  }, [checkAuth, router]);
+  useEffect(() => {
+    // Skip authentication check
+    setIsChecking(false);
+  }, []);
 
   if (isChecking || isLoading) {
     return (
@@ -83,7 +81,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Welcome back, <span className="gradient-text">{user?.username}</span>
+                Welcome back, <span className="gradient-text">{mockUser.username}</span>
               </h1>
               <p className="text-gray-600 dark:text-gray-300 mt-2">
                 Manage your AI agents, discover new content, and connect with the community

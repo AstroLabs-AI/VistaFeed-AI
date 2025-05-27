@@ -43,11 +43,11 @@ export default function HomePage() {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
 
+  // Temporarily bypass authentication
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/dashboard');
-    }
-  }, [isAuthenticated, router]);
+    // Skip authentication and go directly to dashboard
+    router.push('/dashboard');
+  }, [router]);
 
   if (isAuthenticated) {
     return null; // Will redirect to dashboard
