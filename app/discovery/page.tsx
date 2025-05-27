@@ -223,33 +223,18 @@ export default function DiscoveryPage() {
   const [diversityPreference, setDiversityPreference] = useState([0.3]);
   const [showExplanations, setShowExplanations] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isChecking, setIsChecking] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const { isAuthenticated, checkAuth, getToken } = useAuth();
-  const router = useRouter();
+  const { getToken } = useAuth();
 
   useEffect(() => {
-    const validateAuth = async () => {
-      setIsChecking(true);
-      const isValid = await checkAuth();
-      if (!isValid) {
-        router.push('/');
-        return;
-      }
-      setIsChecking(false);
-      // Fetch recommendations after authentication
-      fetchRecommendations();
-    };
-
-    validateAuth();
-  }, [checkAuth, router]);
+    // Fetch recommendations immediately
+    fetchRecommendations();
+  }, []);
   
   // Fetch recommendations when diversity preference changes
   useEffect(() => {
-    if (isAuthenticated && !isChecking) {
-      fetchRecommendations();
-    }
-  }, [diversityPreference, isAuthenticated, isChecking]);
+    fetchRecommendations();
+  }, [diversityPreference]);
   
   const fetchRecommendations = async () => {
     try {
@@ -305,21 +290,6 @@ export default function DiscoveryPage() {
     return views.toString();
   };
 
-  if (isChecking) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-purple-50/50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-purple-50/50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pt-20">

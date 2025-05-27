@@ -44,38 +44,25 @@ export default function VideosPage() {
   const [videos, setVideos] = useState<Video[]>(initialVideos);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
-  const [isChecking, setIsChecking] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, checkAuth, getToken } = useAuth();
-  const router = useRouter();
+  const { getToken } = useAuth();
 
   useEffect(() => {
-    const validateAuth = async () => {
-      setIsChecking(true);
-      const isValid = await checkAuth();
-      if (!isValid) {
-        router.push('/');
-        return;
-      }
-      setIsChecking(false);
-      // Fetch initial videos after authentication
-      fetchVideos('programming');
-    };
-
-    validateAuth();
-  }, [checkAuth, router]);
+    // Fetch initial videos immediately
+    fetchVideos('programming');
+  }, []);
   
   // Fetch videos when search query changes (with debounce)
   useEffect(() => {
-    if (!isAuthenticated || searchQuery.length < 2) return;
+    if (searchQuery.length < 2) return;
     
     const debounceTimer = setTimeout(() => {
       fetchVideos(searchQuery);
     }, 500); // 500ms debounce
     
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery, isAuthenticated]);
+  }, [searchQuery]);
   
   // Function to fetch videos from the YouTube API
   const fetchVideos = async (query: string) => {
@@ -139,21 +126,6 @@ export default function VideosPage() {
     return duration;
   };
 
-  if (isChecking) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-purple-50/50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-purple-50/50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pt-20">
