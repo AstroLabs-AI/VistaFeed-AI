@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
     try {
       const videoDetails = await getVideoDetails(videoId);
       if (videoDetails) {
-        videoDescription = videoDetails.snippet.description || '';
-        thumbnailUrl = videoDetails.snippet.thumbnails?.high?.url || '';
+        videoDescription = videoDetails.description || '';
+        thumbnailUrl = videoDetails.thumbnail || '';
       }
     } catch (error) {
       console.error('Failed to fetch video details:', error);
