@@ -1,14 +1,24 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    router.push('/dashboard');
-  }, [router]);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      const timer = setTimeout(() => {
+        router.push('/dashboard');
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [mounted, router]);
 
   return (
     <div style={{ 
