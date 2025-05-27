@@ -20,6 +20,7 @@ interface AuthState {
   updateUser: (user: Partial<User>) => void;
   setLoading: (loading: boolean) => void;
   checkAuth: () => Promise<boolean>;
+  getToken: () => Promise<string | null>;
 }
 
 export const useAuth = create<AuthState>()(
@@ -79,6 +80,9 @@ export const useAuth = create<AuthState>()(
           get().logout();
           return false;
         }
+      },
+      getToken: async () => {
+        return get().accessToken;
       },
     }),
     {
