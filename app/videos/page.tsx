@@ -73,8 +73,6 @@ export default function VideosPage() {
       setError(null);
       
       const token = await getToken();
-      console.log('Token:', token); // Debug log
-      // Remove token check since we're in demo mode
       
       const params = new URLSearchParams({
         q: query,
@@ -82,25 +80,18 @@ export default function VideosPage() {
         order: 'relevance'
       });
       
-      const url = `/api/videos/search?${params.toString()}`;
-      console.log('Fetching from:', url); // Debug log
-      
-      const response = await fetch(url, {
+      const response = await fetch(`/api/videos/search?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${token || 'demo-token'}`
         }
       });
       
-      console.log('Response status:', response.status); // Debug log
-      
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('API Error:', errorData); // Debug log
         throw new Error(errorData.error || 'Failed to fetch videos');
       }
       
       const data = await response.json();
-      console.log('Videos received:', data.videos?.length); // Debug log
       
       // Parse dates properly
       const parsedVideos = (data.videos || []).map((video: any) => ({
