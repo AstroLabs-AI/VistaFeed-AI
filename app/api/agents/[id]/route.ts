@@ -6,7 +6,7 @@ import { verifyAccessToken } from '@/lib/auth';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get('authorization');
@@ -22,10 +22,11 @@ export async function PUT(
     }
     
     const { agentName, configuration, visualAssets } = await request.json();
+    const { id } = await params;
     
     const agent = await prisma.agent.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: payload.userId
       }
     });
@@ -35,7 +36,7 @@ export async function PUT(
     }
     
     const updatedAgent = await prisma.agent.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         agentName: agentName || agent.agentName,
         configuration: configuration || agent.configuration,
@@ -53,7 +54,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get('authorization');
@@ -68,9 +69,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
     
+    const { id } = await params;
+    
     const agent = await prisma.agent.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: payload.userId
       }
     });
@@ -80,7 +83,7 @@ export async function DELETE(
     }
     
     await prisma.agent.delete({
-      where: { id: params.id }
+      where: { id: id }
     });
     
     return NextResponse.json({ message: 'Agent deleted successfully' });
