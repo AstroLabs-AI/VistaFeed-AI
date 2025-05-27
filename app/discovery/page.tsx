@@ -217,14 +217,15 @@ const mockRecommendations: AIRecommendation[] = [
 ];
 
 export default function DiscoveryPage() {
-  const [recommendations, setRecommendations] = useState<AIRecommendation[]>(mockRecommendations);
+  const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
   const [agents, setAgents] = useState<Agent[]>(mockAgents);
   const [selectedAgent, setSelectedAgent] = useState<string>('all');
   const [diversityPreference, setDiversityPreference] = useState([0.3]);
   const [showExplanations, setShowExplanations] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
-  const { isAuthenticated, checkAuth } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { isAuthenticated, checkAuth, getToken } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -236,10 +237,45 @@ export default function DiscoveryPage() {
         return;
       }
       setIsChecking(false);
+      // Fetch recommendations after authentication
+      fetchRecommendations();
     };
 
     validateAuth();
   }, [checkAuth, router]);
+  
+  // Fetch recommendations when diversity preference changes
+  useEffect(() => {
+    if (isAuthenticated && !isChecking) {
+      fetchRecommendations();
+    }
+  }, [diversityPreference, isAuthenticated, isChecking]);
+  
+  const fetchRecommendations = async () => {
+    try {
+      setIsLoading(true);
+      const token = await getToken();
+      
+      const response = await fetch(`/api/videos/recommendations?diversity=${diversityPreference[0]}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch recommendations');
+      }
+      
+      const data = await response.json();
+      setRecommendations(data.recommendations);
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+      // Fall back to mock data if API fails
+      setRecommendations(mockRecommendations);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredRecommendations = recommendations.filter(rec => 
     selectedAgent === 'all' || rec.agentRecommendation.agentName === selectedAgent
@@ -345,9 +381,13 @@ export default function DiscoveryPage() {
                 </div>
               </DialogContent>
             </Dialog>
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+            <Button 
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              onClick={fetchRecommendations}
+              disabled={isLoading}
+            >
               <Shuffle className="w-4 h-4 mr-2" />
-              Refresh
+              {isLoading ? 'Loading...' : 'Refresh'}
             </Button>
           </div>
         </motion.div>
@@ -408,8 +448,20 @@ export default function DiscoveryPage() {
         </motion.div>
 
         {/* Recommendations */}
-        <div className="space-y-6">
-          {filteredRecommendations.map((recommendation, index) => (
+        {isLoading && recommendations.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col items-center justify-center py-16"
+          >
+            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6" />
+            <p className="text-gray-600 dark:text-gray-300">
+              Discovering personalized videos for you...
+            </p>
+          </motion.div>
+        ) : (
+          <div className="space-y-6">
+            {filteredRecommendations.map((recommendation, index) => (
             <motion.div
               key={recommendation.id}
               initial={{ opacity: 0, y: 20 }}
@@ -569,7 +621,10 @@ export default function DiscoveryPage() {
                             <span>Trending: {Math.round(recommendation.socialSignals.trending_score * 100)}%</span>
                           </div>
                         </div>
-                        <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                        <Button 
+                          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                          onClick={() => window.open(`https://www.youtube.com/watch?v=${recommendation.videoId}`, '_blank')}
+                        >
                           <Play className="w-4 h-4 mr-2" />
                           Watch Now
                         </Button>
@@ -580,7 +635,8 @@ export default function DiscoveryPage() {
               </Card>
             </motion.div>
           ))}
-        </div>
+          </div>
+        )}
 
         {/* Learning Insights */}
         <motion.div

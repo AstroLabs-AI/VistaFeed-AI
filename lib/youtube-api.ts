@@ -249,3 +249,9 @@ export class YouTubeAPI {
 }
 
 export const youtubeAPI = new YouTubeAPI();
+
+// Export convenience functions
+export const searchVideos = (params: YouTubeSearchParams) => youtubeAPI.searchVideos(params);
+export const getVideoDetails = (videoId: string) => youtubeAPI.getVideoDetails(videoId);
+export const getVideoCaptions = (videoId: string) => youtubeAPI.getVideoCaptions(videoId);
+export const getVideoComments = (videoId: string, maxResults?: number) => youtubeAPI.getVideoComments(videoId, maxResults);
