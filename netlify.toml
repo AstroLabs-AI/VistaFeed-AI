@@ -1,6 +1,6 @@
 [build]
   command = "npm install && npx prisma generate && npm run build"
-  publish = ".next"
+  publish = "."
 
 [build.environment]
   NODE_VERSION = "18"
@@ -12,7 +12,3 @@
 [dev]
   command = "npm run dev"
   port = 3000
-
-[functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"
