@@ -12,20 +12,8 @@ import { useRouter } from 'next/navigation';
 export default function DashboardPage() {
   const { isAuthenticated, user, checkAuth, isLoading } = useAuth();
   const router = useRouter();
-  const [isChecking, setIsChecking] = useState(false); // Changed to false by default
 
-  // Mock user for demo purposes
-  const mockUser = {
-    username: 'Demo User',
-    email: 'demo@example.com'
-  };
-
-  useEffect(() => {
-    // Skip authentication check
-    setIsChecking(false);
-  }, []);
-
-  if (isChecking) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-purple-50/50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -81,7 +69,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Welcome back, <span className="gradient-text">{mockUser.username}</span>
+                Welcome back, <span className="gradient-text">{user?.username || 'Demo User'}</span>
               </h1>
               <p className="text-gray-600 dark:text-gray-300 mt-2">
                 Manage your AI agents, discover new content, and connect with the community
